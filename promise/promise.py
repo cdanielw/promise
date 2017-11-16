@@ -11,7 +11,7 @@ from typing import (List, Any, Callable, Dict, Iterator, Optional,  # flake8: no
 from .async_ import Async
 from .compat import (Future, ensure_future, iscoroutine,  # type: ignore
                      iterate_promise)
-from .utils import deprecated, integer_types, string_types, text_type, binary_type, warn
+from .utils import deprecated, integer_types, string_types, text_type, binary_type, warn, re_raisable
 from .promise_list import PromiseList
 from .schedulers.immediate import ImmediateScheduler
 # from .schedulers.gevent import GeventScheduler
@@ -63,9 +63,9 @@ def make_self_resolution_error():
 def try_catch(handler, *args, **kwargs):
     try:
         return (handler(*args, **kwargs), None)
-    except Exception as e:
+    except Exception:
         tb = exc_info()[2]
-        return (None, (e, tb))
+        return (None, (re_raisable(), tb))
 
 
 class Promise(object):
@@ -401,9 +401,9 @@ class Promise(object):
         traceback = None
         try:
             executor(resolve, reject)
-        except Exception as e:
+        except Exception:
             traceback = exc_info()[2]
-            error = e
+            error = re_raisable()
 
         synchronous = False
 
